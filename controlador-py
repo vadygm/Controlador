@@ -31,7 +31,7 @@ cursor.execute(crear_tabla_query)
 #Desarollamos una funcion para poder agregar nuevos usuarios a nuestra base de datos
 #llenando los datos creados en nuestra tabla usuarios
 def agregar_usuario(nombre, apellido, correo, cedula, celular):
-    #Validamos que los campos esten llenos caso contrario no se ingresaran los datos
+    #validamos que todos los datos esten ingresados 
     if not nombre or not apellido or not correo or not cedula or not celular:
         print("Por favor ingrese todos sus datos para el registro")
         return None
@@ -62,11 +62,17 @@ def datos_usuario():
         correo = input("Ingrese el correo electrónico: ")
         cedula = input("Ingrese la cédula: ")
         celular = input("Ingrese el número de celular: ")
-        #Aqui tambien validamos los campos se encuentren llenos
+        #validamos los datos del usuario
         if nombre and apellido and correo and cedula and celular:
             return nombre, apellido, correo, cedula, celular
         else:
             print("Por favor ingrese todos sus datos para el registro")
+
+#si algun elemento fue eliminado restabl3ecemos los id
+def resetear_ids():
+    resetear_ids_query ="TRUNCATE TABLE usuarios RESTART IDENTITY;"
+    cursor.execute(resetear_ids_query)
+    conexion.commit()
 
 #creamos nuestro main donde ejecutaremos nuestras funciones realizadas
 #como lo es la creacion de un usuario y visualizacion del mismo en la bbdd si la conexion es exitosa
@@ -76,7 +82,7 @@ if __name__ == "__main__":
     nuevo_usuario_id = agregar_usuario(*datos_usuario)
 
     if nuevo_usuario_id:
-        #Traemos el Id de creacion del usuario
+        #traemos el Id del usuario
         print(f"Nuevo usuario agregado con ID: {nuevo_usuario_id}")
 
     #Imprimimos todo los usuarios ingresados en nuestra bbdd
@@ -85,6 +91,8 @@ if __name__ == "__main__":
     for usuario in usuarios:
         print(usuario)
 
+    #llamamos la metodo para recetear los ids
+    #resetear_ids()
     #Cerramos finalmente nuestra conexion para que sea segura
     cursor.close()
     conexion.close()
