@@ -1,0 +1,26 @@
+UNIVERSIDAD POLITECNICA SALESIANA
+NOMBRE: JOEL CORRALES
+
+RECURSOS NECESARIOS:
+# Creamos la tabla de usuarios si no existe
+CREATE usuarios (
+    id SERIAL PRIMARY KEY,
+    nombre VARCHAR(50),
+    apellido VARCHAR(50),
+    correo VARCHAR(100),
+    cedula VARCHAR(20),
+    celular VARCHAR(15)
+);
+
+
+# Creamos la tabla de cuentas de ahorros si no existe
+CREATE TABLE cuentas_ahorros (
+    id SERIAL PRIMARY KEY,
+    usuario_id INTEGER REFERENCES usuarios(id),
+    numero_cuenta VARCHAR(20) UNIQUE,
+    saldo DECIMAL(10, 2) 
+);
+
+
+PARA EJECUTAR EL CODIGO SE REQUIERE DE EJECUTAR EN EL IDE:
+python controlador.py
