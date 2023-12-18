@@ -8,8 +8,8 @@ info:
 paths:
   /usuarios:
     post:
-      summary: Agregar nuevo usuario
-      description: Agrega un nuevo usuario a la base de datos.
+      summary: Registrar nuevo usuario
+      description: Registra un nuevo usuario en la base de datos.
       requestBody:
         required: true
         content:
@@ -45,45 +45,88 @@ paths:
                   cedula: 1234567890
                   celular: 0987654321
 
-  /usuarios/resetear_ids:
+  /creditos/{numero_cuenta}:
     post:
-      summary: Resetear IDs de usuarios
-      description: Resetea los IDs de la tabla de usuarios en caso de eliminación de registros.
-      responses:
-        '200':
-          description: IDs reseteados exitosamente
-          content:
-            application/json:
-              example:
-                mensaje: IDs reseteados con éxito
-
-  /creditos:
-    post:
-      summary: Crear nuevo crédito
-      description: Crea un nuevo crédito con los detalles proporcionados.
+      summary: Solicitar nuevo crédito
+      description: Solicita un nuevo crédito asociado a una cuenta específica.
+      parameters:
+        - in: path
+          name: numero_cuenta
+          required: true
+          description: Número de cuenta asociado al crédito.
+          schema:
+            type: string
+            example: "1234567890"
       requestBody:
         required: true
         content:
           application/json:
             example:
-              cliente_nombre: Juan Pérez
               monto: 10000.0
               tasa_interes: 0.05
               plazo_meses: 12
       responses:
         '201':
-          description: Crédito creado exitosamente
+          description: Crédito solicitado exitosamente
           content:
             application/json:
               example:
-                mensaje: Crédito creado exitosamente
+                mensaje: Crédito solicitado exitosamente
 
-    get:
-      summary: Obtener todos los créditos
-      description: Obtiene la lista de todos los créditos almacenados.
+  /creditos/{credito_id}:
+    put:
+      summary: Aprobar crédito
+      description: Aprueba un crédito existente.
+      parameters:
+        - in: path
+          name: credito_id
+          required: true
+          description: ID del crédito a aprobar.
+          schema:
+            type: integer
+            example: 1
       responses:
         '200':
-          description: Lista de créditos recuperada exitosamente
+          description: Crédito aprobado exitosamente
+          content:
+            application/json:
+              example:
+                mensaje: Crédito aprobado exitosamente
+
+    delete:
+      summary: Rechazar crédito
+      description: Rechaza un crédito existente.
+      parameters:
+        - in: path
+          name: credito_id
+          required: true
+          description: ID del crédito a rechazar.
+          schema:
+            type: integer
+            example: 1
+      responses:
+        '200':
+          description: Crédito rechazado exitosamente
+          content:
+            application/json:
+              example:
+                mensaje: Crédito rechazado exitosamente
+
+  /creditos/{usuario_id}/reporte:
+    get:
+      summary: Generar reporte de créditos
+      description: Genera un reporte de todos los créditos asociados a un usuario específico.
+      parameters:
+        - in: path
+          name: usuario_id
+          required: true
+          description: ID del usuario para el reporte.
+          schema:
+            type: integer
+            example: 1
+      responses:
+        '200':
+          description: Reporte de créditos generado exitosamente
           content:
             application/json:
               example:
@@ -93,6 +136,27 @@ paths:
                     monto: 10000.0
                     tasa_interes: 0.05
                     plazo_meses: 12
+
+  /creditos/{usuario_id}/amortizacion:
+    get:
+      summary: Generar tabla de amortización
+      description: Genera una tabla de amortización para los créditos asociados a un usuario específico.
+      parameters:
+        - in: path
+          name: usuario_id
+          required: true
+          description: ID del usuario para la tabla de amortización.
+          schema:
+            type: integer
+            example: 1
+      responses:
+        '200':
+          description: Tabla de amortización generada exitosamente
+          content:
+            application/json:
+              example:
+                mensaje: Tabla de amortización generada exitosamente
+
 
 components:
   schemas:
@@ -114,3 +178,41 @@ components:
         plazo_meses:
           type: integer
           description: Plazo en meses del crédito
+    Usuario:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: ID del usuario
+        nombre:
+          type: string
+          description: Nombre del usuario
+        apellido:
+          type: string
+          description: Apellido del usuario
+        correo:
+          type: string
+          description: Correo electrónico del usuario
+        cedula:
+          type: string
+          description: Número de cédula del usuario
+        celular:
+          type: string
+          description: Número de celular del usuario
+
+    CuentaAhorros:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: ID de la cuenta de ahorros
+        usuario:
+          $ref: '#/components/schemas/Usuario'
+          description: Objeto de tipo Usuario asociado a la cuenta de ahorros
+        numero_cuenta:
+          type: string
+          description: Número de cuenta de la cuenta de ahorros
+        saldo:
+          type: number
+          description: Saldo actual en la cuenta de ahorros
+
