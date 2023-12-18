@@ -1,0 +1,116 @@
+openapi: 3.0.0
+info:
+  title: API de Gestión de Usuarios y Créditos
+  version: 1.0.0
+  description: >
+    API que permite gestionar usuarios y créditos en una base de datos PostgreSQL.
+
+paths:
+  /usuarios:
+    post:
+      summary: Agregar nuevo usuario
+      description: Agrega un nuevo usuario a la base de datos.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example:
+              nombre: Juan
+              apellido: Pérez
+              correo: juan@example.com
+              cedula: 1234567890
+              celular: 0987654321
+      responses:
+        '201':
+          description: Usuario creado exitosamente
+          content:
+            application/json:
+              example:
+                id: 1
+                mensaje: Usuario creado con éxito
+
+    get:
+      summary: Obtener todos los usuarios
+      description: Retorna la lista de todos los usuarios en la base de datos.
+      responses:
+        '200':
+          description: Lista de usuarios recuperada exitosamente
+          content:
+            application/json:
+              example:
+                - id: 1
+                  nombre: Juan
+                  apellido: Pérez
+                  correo: juan@example.com
+                  cedula: 1234567890
+                  celular: 0987654321
+
+  /usuarios/resetear_ids:
+    post:
+      summary: Resetear IDs de usuarios
+      description: Resetea los IDs de la tabla de usuarios en caso de eliminación de registros.
+      responses:
+        '200':
+          description: IDs reseteados exitosamente
+          content:
+            application/json:
+              example:
+                mensaje: IDs reseteados con éxito
+
+  /creditos:
+    post:
+      summary: Crear nuevo crédito
+      description: Crea un nuevo crédito con los detalles proporcionados.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example:
+              cliente_nombre: Juan Pérez
+              monto: 10000.0
+              tasa_interes: 0.05
+              plazo_meses: 12
+      responses:
+        '201':
+          description: Crédito creado exitosamente
+          content:
+            application/json:
+              example:
+                mensaje: Crédito creado exitosamente
+
+    get:
+      summary: Obtener todos los créditos
+      description: Obtiene la lista de todos los créditos almacenados.
+      responses:
+        '200':
+          description: Lista de créditos recuperada exitosamente
+          content:
+            application/json:
+              example:
+                creditos:
+                  - id: 1
+                    cliente_nombre: Juan Pérez
+                    monto: 10000.0
+                    tasa_interes: 0.05
+                    plazo_meses: 12
+
+components:
+  schemas:
+    Credito:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: ID del crédito
+        cliente_nombre:
+          type: string
+          description: Nombre del cliente
+        monto:
+          type: number
+          description: Monto del crédito
+        tasa_interes:
+          type: number
+          description: Tasa de interés del crédito
+        plazo_meses:
+          type: integer
+          description: Plazo en meses del crédito
