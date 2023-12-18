@@ -82,6 +82,53 @@ def crear_cuenta_ahorros(usuario_id, saldo_inicial=0):
     conexion.commit()
     return cuenta_id
 
+
+# Función para realizar un depósito en una cuenta de ahorros
+def depositar_en_cuenta(numero_cuenta_destino, monto):
+    # Verificamos si la cuenta de destino existe
+    verificar_cuenta_query = "SELECT id FROM cuentas_ahorros WHERE numero_cuenta = %s;"
+    cursor.execute(verificar_cuenta_query, (numero_cuenta_destino,))
+    cuenta_existente = cursor.fetchone()
+
+    if cuenta_existente:
+        # Realizamos el depósito en la cuenta existente
+        depositar_query = """
+        UPDATE cuentas_ahorros
+        SET saldo = saldo + %s
+        WHERE numero_cuenta = %s;
+        """
+        cursor.execute(depositar_query, (monto, numero_cuenta_destino))
+        conexion.commit()
+        print(f"Depósito de {monto} realizado en la cuenta {numero_cuenta_destino}")
+    else:
+        print(f"No existe una cuenta con el número {numero_cuenta_destino}")
+
+# Función para realizar un retiro en una cuenta de ahorros
+def retirar_de_cuenta(numero_cuenta_origen, monto):
+    # Verificamos si la cuenta de origen existe
+    verificar_cuenta_query = "SELECT id, saldo FROM cuentas_ahorros WHERE numero_cuenta = %s;"
+    cursor.execute(verificar_cuenta_query, (numero_cuenta_origen,))
+    cuenta_existente = cursor.fetchone()
+
+    if cuenta_existente:
+        # Verificamos si hay suficiente saldo para el retiro
+        cuenta_id, saldo_actual = cuenta_existente
+        if saldo_actual >= monto:
+            # Realizamos el retiro de la cuenta existente
+            retirar_query = """
+            UPDATE cuentas_ahorros
+            SET saldo = saldo - %s
+            WHERE numero_cuenta = %s;
+            """
+            cursor.execute(retirar_query, (monto, numero_cuenta_origen))
+            conexion.commit()
+            print(f"Retiro de {monto} realizado de la cuenta {numero_cuenta_origen}")
+        else:
+            print("Saldo insuficiente para realizar el retiro")
+    else:
+        print(f"No existe una cuenta con el número {numero_cuenta_origen}")
+
+
 # Función para obtener todos los usuarios de la base de datos
 def obtener_usuarios():
     obtener_usuarios_query = "SELECT * FROM usuarios;"
@@ -118,6 +165,15 @@ if __name__ == "__main__":
 
         if nueva_cuenta_id:
             print(f"Se ha creado una cuenta de ahorros con ID: {nueva_cuenta_id}")
+    
+    # Realizamos un depósito y un retiro de ejemplo
+    deposito_numero_cuenta = "1081464755"  # Reemplaza con un número de cuenta existente
+    deposito_monto = 500
+    depositar_en_cuenta(deposito_numero_cuenta, deposito_monto)
+
+    retiro_numero_cuenta = "2713939291"  # Reemplaza con un número de cuenta existente
+    retiro_monto = 700
+    retirar_de_cuenta(retiro_numero_cuenta, retiro_monto)
 
     # Imprimimos todas las cuentas de ahorros
     cuentas_ahorros_query = "SELECT * FROM cuentas_ahorros;"
@@ -127,6 +183,8 @@ if __name__ == "__main__":
     for cuenta in cuentas_ahorros:
         print(cuenta)
 
+    
+    
     # Cerramos finalmente nuestra conexión para que sea segura
     cursor.close()
     conexion.close()
