@@ -8,7 +8,7 @@ from psycopg2 import sql
 conexion = psycopg2.connect(
     database="usuario",
     user="postgres",
-    password="12345",
+    password="1234",
     host="localhost",
     port="5432"
 )
@@ -18,18 +18,30 @@ cursor = conexion.cursor()
 
 #Creamos nuestro usuario si en nuestro potsgres aun no lo hemos realizado caso contrario
 #lo dejamos comentado.
-crear_tabla_query = """
-CREATE TABLE IF NOT EXISTS usuarios (
-    id SERIAL PRIMARY KEY,
-    nombre VARCHAR(50),
-    apellido VARCHAR(50),
-    correo VARCHAR(100),
-    cedula VARCHAR(20),
-    celular VARCHAR(15)
-);
-"""
-cursor.execute(crear_tabla_query)
+def crear_tablas():
+    crear_usuarios_query = """
+    CREATE TABLE IF NOT EXISTS usuarios (
+        id SERIAL PRIMARY KEY,
+        nombre VARCHAR(50),
+        apellido VARCHAR(50),
+        correo VARCHAR(100),
+        cedula VARCHAR(20),
+        celular VARCHAR(15)
+    );
+    """
 
+    crear_cuentas_query = """
+    CREATE TABLE IF NOT EXISTS cuentas_ahorro (
+        id SERIAL PRIMARY KEY,
+        usuario_id INTEGER UNIQUE REFERENCES usuarios(id),
+        saldo DECIMAL(10, 2) DEFAULT 0.0
+    );
+    """
+
+    cursor.execute(crear_usuarios_query)
+    cursor.execute(crear_cuentas_query)
+    conexion.commit()
+    
 #Desarollamos una funcion para poder agregar nuevos usuarios a nuestra base de datos
 #llenando los datos creados en nuestra tabla usuarios
 def agregar_usuario(nombre, apellido, correo, cedula, celular):
@@ -56,6 +68,20 @@ def agregar_usuario(nombre, apellido, correo, cedula, celular):
     usuario_id = cursor.fetchone()[0]
     conexion.commit()
     return usuario_id
+
+def crear_cuenta_ahorro(usuario_id):
+    try:
+        crear_cuenta_query = """
+        INSERT INTO cuentas_ahorro (usuario_id) VALUES (%s) RETURNING id;
+        """
+        cursor.execute(crear_cuenta_query, (usuario_id,))
+        cuenta_id = cursor.fetchone()[0]
+        conexion.commit()
+        return cuenta_id
+    except psycopg2.IntegrityError:
+        # Si hay una violación de la restricción UNIQUE, significa que el usuario ya tiene una cuenta
+        print("Este usuario ya tiene una cuenta de ahorro.")
+        return None
 
 #Creamos una funcion para poder realizar una sentecia sql a la base de datos
 #en este casio una sentencias para obtener los usuarios de una bbdd.
@@ -91,12 +117,17 @@ def resetear_ids():
 #como lo es la creacion de un usuario y visualizacion del mismo en la bbdd si la conexion es exitosa
 if __name__ == "__main__":
     #Ingresamos un nuevo usuario por consola validando el mismo
+    
+    crear_tablas()
+    
     datos_usuario = datos_usuario()
     nuevo_usuario_id = agregar_usuario(*datos_usuario)
 
     if nuevo_usuario_id:
-        #traemos el id del usuario
-        print(f"Nuevo usuario agregado con ID: {nuevo_usuario_id}")
+        nuevo_cuenta_id = crear_cuenta_ahorro(nuevo_usuario_id)
+        if nuevo_cuenta_id is not None:
+            print(f"Nuevo usuario agregado con ID: {nuevo_usuario_id} y cuenta de ahorro creada con ID: {nuevo_cuenta_id}")
+
 
     #Imprimimos todo los usuarios ingresados en nuestra bbdd
     usuarios = obtener_usuarios()
