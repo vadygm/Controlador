@@ -1,0 +1,125 @@
+import psycopg2
+from psycopg2 import sql
+import re
+
+# Conexión a la base de datos
+conexion = psycopg2.connect(
+    database="usuario",
+    user="postgres",
+    password="12345",
+    host="localhost",
+    port="5432"
+)
+
+# Cursor para ejecutar consultas SQL
+cursor = conexion.cursor()
+
+# Creación de tablas si no existen
+crear_tabla_usuarios_query = """
+CREATE TABLE IF NOT EXISTS usuarios (
+    id SERIAL PRIMARY KEY,
+    nombre VARCHAR(50),
+    apellido VARCHAR(50),
+    correo VARCHAR(100),
+    cedula VARCHAR(20),
+    celular VARCHAR(15)
+);
+"""
+cursor.execute(crear_tabla_usuarios_query)
+
+crear_tabla_creditos_query = """
+CREATE TABLE IF NOT EXISTS creditos (
+    id SERIAL PRIMARY KEY,
+    usuario_id INTEGER REFERENCES usuarios(id),
+    monto DECIMAL(10, 2),
+    plazo_meses INTEGER,
+    estado VARCHAR(20) DEFAULT 'pendiente'
+);
+"""
+cursor.execute(crear_tabla_creditos_query)
+
+conexion.commit()
+
+def agregar_usuario(nombre, apellido, correo, cedula, celular):
+    # Validamos que todos los datos estén ingresados
+    if not nombre or not apellido or not correo or not cedula or not celular:
+        print("Por favor ingrese todos sus datos para el registro")
+        return None
+
+    # Validamos el formato de la cédula para Ecuador
+    if not re.match(r'^[0-9]{10}$', cedula):
+        print("La cédula debe contener 10 dígitos numéricos")
+        return None
+
+    # Validamos el formato del número de celular para Ecuador
+    if not re.match(r'^[0-9]{10}$', celular):
+        print("El número de celular debe contener 10 dígitos numéricos")
+        return None
+
+    insertar_usuario_query = """
+    INSERT INTO usuarios (nombre, apellido, correo, cedula, celular)
+    VALUES (%s, %s, %s, %s, %s) RETURNING id;
+    """
+    cursor.execute(insertar_usuario_query, (nombre, apellido, correo, cedula, celular))
+    usuario_id = cursor.fetchone()[0]
+    conexion.commit()
+    return usuario_id
+
+def solicitar_credito(usuario_id, monto, plazo_meses):
+    if not monto or not plazo_meses:
+        print("Por favor ingrese todos los datos para la solicitud de crédito")
+        return None
+
+    insertar_credito_query = """
+    INSERT INTO creditos (usuario_id, monto, plazo_meses)
+    VALUES (%s, %s, %s) RETURNING id;
+    """
+    cursor.execute(insertar_credito_query, (usuario_id, monto, plazo_meses))
+    credito_id = cursor.fetchone()[0]
+    conexion.commit()
+    return credito_id
+
+def aprobar_credito(credito_id):
+    aprobar_credito_query = """
+    UPDATE creditos SET estado = 'aprobado' WHERE id = %s;
+    """
+    cursor.execute(aprobar_credito_query, (credito_id,))
+    conexion.commit()
+
+def obtener_creditos():
+    obtener_creditos_query = "SELECT * FROM creditos;"
+    cursor.execute(obtener_creditos_query)
+    creditos = cursor.fetchall()
+    return creditos
+
+# Ejemplo de uso:
+# Agregar un usuario
+nombre = input("Ingrese el nombre: ")
+apellido = input("Ingrese el apellido: ")
+correo = input("Ingrese el correo electrónico: ")
+cedula = input("Ingrese la cédula (10 dígitos numéricos): ")
+celular = input("Ingrese el número de celular (10 dígitos numéricos): ")
+
+usuario_id = agregar_usuario(nombre, apellido, correo, cedula, celular)
+print(f"Nuevo usuario agregado con ID: {usuario_id}")
+
+# Solicitar un crédito para el usuario
+monto = input("Ingrese el monto del crédito: ")
+plazo_meses = input("Ingrese el plazo del crédito en meses: ")
+
+credito_id = solicitar_credito(usuario_id, monto, plazo_meses)
+print(f"Crédito solicitado con ID: {credito_id}")
+
+# Aprobar el crédito
+aprobar_credito(credito_id)
+print(f"Crédito con ID {credito_id} aprobado")
+
+# Obtener la lista de créditos
+creditos = obtener_creditos()
+print("\nLista de Créditos:")
+for credito in creditos:
+    print(credito)
+
+# Cerramos finalmente nuestra conexión para que sea segura
+cursor.close()
+conexion.close()
