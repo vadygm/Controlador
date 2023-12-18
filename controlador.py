@@ -3,6 +3,9 @@ import psycopg2
 import re
 import random
 from psycopg2 import sql
+from flask import Flask
+from flask_restful import Api, Resource, reqparse
+from flasgger import Swagger
 
 # Conectamos a la base de datos de PostgreSQL
 conexion = psycopg2.connect(
@@ -129,6 +132,32 @@ def retirar_de_cuenta(numero_cuenta_origen, monto):
         print(f"No existe una cuenta con el número {numero_cuenta_origen}")
 
 
+# Función para eliminar una cuenta de ahorros y su usuario asociado
+def eliminar_cuenta_y_usuario(numero_cuenta):
+    # Verificamos si la cuenta de destino existe
+    verificar_cuenta_query = "SELECT id, usuario_id FROM cuentas_ahorros WHERE numero_cuenta = %s;"
+    cursor.execute(verificar_cuenta_query, (numero_cuenta,))
+    cuenta_existente = cursor.fetchone()
+
+    if cuenta_existente:
+        # Obtenemos el id de la cuenta y el id del usuario asociado
+        cuenta_id, usuario_id = cuenta_existente
+
+        # Eliminamos la cuenta de ahorros
+        eliminar_cuenta_query = "DELETE FROM cuentas_ahorros WHERE id = %s;"
+        cursor.execute(eliminar_cuenta_query, (cuenta_id,))
+
+        # Eliminamos al usuario asociado
+        eliminar_usuario_query = "DELETE FROM usuarios WHERE id = %s;"
+        cursor.execute(eliminar_usuario_query, (usuario_id,))
+
+        conexion.commit()
+        print(f"La cuenta {numero_cuenta} y su usuario asociado han sido eliminados.")
+    else:
+        print(f"No existe una cuenta con el número {numero_cuenta}")
+
+
+
 # Función para obtener todos los usuarios de la base de datos
 def obtener_usuarios():
     obtener_usuarios_query = "SELECT * FROM usuarios;"
@@ -175,6 +204,10 @@ if __name__ == "__main__":
     retiro_monto = 700
     retirar_de_cuenta(retiro_numero_cuenta, retiro_monto)
 
+    # Eliminamos una cuenta de ahorros y su usuario asociado de ejemplo
+    cuenta_a_eliminar = "3365158619"  # Reemplaza con un número de cuenta existente
+    eliminar_cuenta_y_usuario(cuenta_a_eliminar)
+    
     # Imprimimos todas las cuentas de ahorros
     cuentas_ahorros_query = "SELECT * FROM cuentas_ahorros;"
     cursor.execute(cuentas_ahorros_query)
