@@ -21,6 +21,35 @@ CREATE TABLE cuentas_ahorros (
     saldo DECIMAL(10, 2) 
 );
 
+CREATE TABLE IF NOT EXISTS transacciones (
+    id SERIAL PRIMARY KEY,
+    tipo VARCHAR(20),
+    descripcion TEXT,
+    monto DECIMAL(10, 2),
+    fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    usuario_id INTEGER REFERENCES usuarios(id),
+    cuenta_id INTEGER REFERENCES cuentas_ahorros(id)
+);
+
+CREATE TABLE IF NOT EXISTS creditos (
+    id SERIAL PRIMARY KEY,
+    usuario_id INTEGER,
+    cuenta_id INTEGER,
+    monto DECIMAL(10, 2),
+    plazo_meses INTEGER,
+    tasa_interes DECIMAL(5, 4),
+    estado VARCHAR(20) DEFAULT 'PENDIENTE'
+);
+
+CREATE TABLE IF NOT EXISTS amortizacion_creditos (
+    id SERIAL PRIMARY KEY,
+    credito_id INTEGER,
+    mes INTEGER,
+    cuota DECIMAL(10, 2),
+    interes DECIMAL(10, 2),
+    amortizacion DECIMAL(10, 2),
+    saldo_pendiente DECIMAL(10, 2)
+);
 
 PARA EJECUTAR EL CODIGO SE REQUIERE DE EJECUTAR EN EL IDE:
 python controlador.py
