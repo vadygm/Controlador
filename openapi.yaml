@@ -1,9 +1,9 @@
 openapi: 3.0.0
 info:
-  title: API de Gestión de Usuarios y Créditos
+  title: Backend de Gestión de Usuarios y Créditos
   version: 1.0.0
   description: >
-    API que permite gestionar usuarios y créditos en una base de datos PostgreSQL.
+    Backend  que permite gestionar usuarios y créditos en una base de datos PostgreSQL.
 
 paths:
   /usuarios:
@@ -48,115 +48,147 @@ paths:
   /creditos/{numero_cuenta}:
     post:
       summary: Solicitar nuevo crédito
-      description: Solicita un nuevo crédito asociado a una cuenta específica.
-      parameters:
-        - in: path
-          name: numero_cuenta
-          required: true
-          description: Número de cuenta asociado al crédito.
-          schema:
-            type: string
-            example: "1234567890"
+      description: Solicita un nuevo crédito asociado a una cuenta.
       requestBody:
         required: true
         content:
           application/json:
             example:
               monto: 10000.0
-              tasa_interes: 0.05
               plazo_meses: 12
+              tasa_interes: 0.05
       responses:
-        '201':
+        '200':
           description: Crédito solicitado exitosamente
           content:
             application/json:
               example:
-                mensaje: Crédito solicitado exitosamente
+                credito_id: 1
 
-  /creditos/{credito_id}:
+  /creditos/{credito_id}/aprobar:
     put:
       summary: Aprobar crédito
       description: Aprueba un crédito existente.
       parameters:
         - in: path
           name: credito_id
+          description: ID del crédito a aprobar
           required: true
-          description: ID del crédito a aprobar.
           schema:
             type: integer
-            example: 1
       responses:
         '200':
           description: Crédito aprobado exitosamente
           content:
             application/json:
               example:
-                mensaje: Crédito aprobado exitosamente
+                message: "Crédito con ID 1 aprobado"
 
-    delete:
+  /creditos/{credito_id}/rechazar:
+    put:
       summary: Rechazar crédito
       description: Rechaza un crédito existente.
       parameters:
         - in: path
           name: credito_id
+          description: ID del crédito a rechazar
           required: true
-          description: ID del crédito a rechazar.
           schema:
             type: integer
-            example: 1
       responses:
         '200':
           description: Crédito rechazado exitosamente
           content:
             application/json:
               example:
-                mensaje: Crédito rechazado exitosamente
+                message: "Crédito con ID 1 rechazado"
 
   /creditos/{usuario_id}/reporte:
     get:
       summary: Generar reporte de créditos
-      description: Genera un reporte de todos los créditos asociados a un usuario específico.
+      description: Genera un reporte de créditos para un usuario dado.
       parameters:
         - in: path
           name: usuario_id
+          description: ID del usuario para generar el reporte
           required: true
-          description: ID del usuario para el reporte.
           schema:
             type: integer
-            example: 1
       responses:
         '200':
-          description: Reporte de créditos generado exitosamente
+          description: Reporte generado exitosamente
           content:
-            application/json:
-              example:
-                creditos:
-                  - id: 1
-                    cliente_nombre: Juan Pérez
-                    monto: 10000.0
-                    tasa_interes: 0.05
-                    plazo_meses: 12
+            text/html:
+              example: "<html>...</html>"
 
-  /creditos/{usuario_id}/amortizacion:
+  /creditos/{credito_id}/amortizacion:
     get:
       summary: Generar tabla de amortización
-      description: Genera una tabla de amortización para los créditos asociados a un usuario específico.
+      description: Genera y guarda una tabla de amortización para un crédito dado.
       parameters:
         - in: path
-          name: usuario_id
+          name: credito_id
+          description: ID del crédito para generar la tabla de amortización
           required: true
-          description: ID del usuario para la tabla de amortización.
           schema:
             type: integer
-            example: 1
       responses:
         '200':
-          description: Tabla de amortización generada exitosamente
+          description: Tabla de amortización generada y guardada exitosamente
           content:
             application/json:
               example:
-                mensaje: Tabla de amortización generada exitosamente
+                message: "Tabla de amortización generada y guardada."
 
+  /cuentas/{numero_cuenta}/deposito:
+    post:
+      summary: Realizar depósito
+      description: Realiza un depósito en una cuenta de ahorros.
+      parameters:
+        - in: path
+          name: numero_cuenta
+          description: Número de cuenta en la que se realizará el depósito
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example:
+              monto: 500.0
+      responses:
+        '200':
+          description: Depósito realizado exitosamente
+          content:
+            application/json:
+              example:
+                message: "Depósito de 500.0 realizado en la cuenta {numero_cuenta}"
+
+  /cuentas/{numero_cuenta}/retiro:
+    post:
+      summary: Realizar retiro
+      description: Realiza un retiro en una cuenta de ahorros.
+      parameters:
+        - in: path
+          name: numero_cuenta
+          description: Número de cuenta en la que se realizará el retiro
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example:
+              monto: 200.0
+      responses:
+        '200':
+          description: Retiro realizado exitosamente
+          content:
+            application/json:
+              example:
+                message: "Retiro de 200.0 realizado en la cuenta {numero_cuenta}"
 
 components:
   schemas:
@@ -215,4 +247,3 @@ components:
         saldo:
           type: number
           description: Saldo actual en la cuenta de ahorros
-
