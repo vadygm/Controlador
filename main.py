@@ -153,3 +153,7 @@ async def obtener_usuarios():
     """
     usuarios = repositorio.obtener_usuarios()
     return {"usuarios": usuarios}
+    
+if __name__ == "__main__":
+    import doctest
+    doctest.testmod()
