@@ -153,6 +153,8 @@ class Controlador:
             print("No hay usuarios registrados.")
 
 if __name__ == "__main__":
+    import doctest
+    doctest.testmod()
     controlador = Controlador()
     #DESCOMENTAR PARA REALIZAR LAS RESPECTIVAS FUNCIONES
     
